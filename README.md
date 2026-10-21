@@ -3,8 +3,8 @@
 把品牌 Logo 渲染成「竖线亮度表卡片」的 Agent skill 与 HTML 模板：不用任何图片，输出单个零依赖 HTML 文件。
 
 <p align="center">
-  <img src="docs/demo-idle.png" alt="静止状态" width="48%">
-  <img src="docs/demo-hover.png" alt="悬停状态" width="48%">
+  <img src="docs/IMG_9546.png" alt="静止状态" width="48%">
+  <img src="docs/IMG_9547.png" alt="悬停状态" width="48%">
 </p>
 <p align="center"><sub>左：静止时线条随噪声缓慢浮动；右：鼠标悬停时线条散开，并出现蓝色检测框。</sub></p>
 
