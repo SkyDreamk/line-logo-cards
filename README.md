@@ -80,6 +80,21 @@ const CONFIG = [
 
 使用方式：在 `template.html` 顶部的 `DATA` 中填入文案，用浏览器打开即可渲染。
 
+## 幻灯片母版（deck-masters/）
+
+`deck-masters/` 是仓库新增的 HTML 幻灯片母版模块，适合把内容按统一版式快速整理成 16:9 幻灯片。它输出单个零依赖 HTML 文件，尺寸为 1920×1080，可直接演示，也可打印成 PDF。当前示例 deck 使用本仓库的竖线 Logo 案例，共 10 页，图表页基于三个品牌 Logo 路径字符数的真实数据。
+
+| 文件 | 说明 |
+| --- | --- |
+| `deck-masters/SKILL.md` | skill 文档，skill 名为 `deck-masters` |
+| `deck-masters/assets/template.html` | 幻灯片母版模板，生成单文件 HTML deck |
+
+- 先出套版表确认内容结构，再按母版生成成稿。
+- 内置 11 种版式：封面、目录、章节、观点、要点、对比、数据、图表、图文、团队、结尾。
+- 设计系统采用锌灰中性色、分层底盘和卡片阴影；点缀色每页只用一处，章节页固定为深色背景。
+
+使用方式：先用套版表定版，再基于 `assets/template.html` 套版生成 HTML 幻灯片。
+
 ## 来源与说明
 
 - **灵感与致谢**：效果灵感来自 Cloudflare 官网的客户墙。X 作者 Ian（[@ianneo_ai](https://x.com/ianneo_ai)）对其做了拆解与复刻，本仓库在此基础上将其整理为可复用的 skill。
