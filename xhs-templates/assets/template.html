@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>xhs-template-cards</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#faf7f2;--fg:#1f1f1f;--ac:#3d8bff;--XXL:160px;--XL:112px;--L:80px;--M:56px;--S:44px;--XS:32px;--sub:color-mix(in srgb,var(--fg) 60%,transparent);--line:color-mix(in srgb,var(--fg) 12%,transparent)}
+html[data-theme=dark]{--bg:#141414;--fg:#f2ede4}
+body{background:#d6d3cd;padding:40px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{position:relative;width:1080px;height:1440px;overflow:hidden;padding:96px;margin:0 auto 40px;background:var(--bg);color:var(--fg);display:flex;flex-direction:column;font-size:var(--S);line-height:1.5}
+.c{justify-content:center}
+.xxl,.xl,.l,.m,.qm{font-weight:700}
+.xxl{font-size:var(--XXL);line-height:1}.xl{font-size:var(--XL);line-height:1.15}.l{font-size:var(--L);line-height:1.25}.m{font-size:var(--M);line-height:1.3}.s{font-size:var(--S);font-weight:400;line-height:1.5}.xs{font-size:var(--XS);font-weight:400;line-height:1.4}
+.sub,.pn{color:var(--sub)}.ac{color:var(--ac)}
+.pn{position:absolute;right:96px;bottom:44px;font-size:var(--XS)}
+.overflow{outline:4px dashed #e53935;outline-offset:6px}
+.mt{margin-top:28px}.ttl{margin-bottom:40px}
+.hr{width:120px;height:6px;background:var(--ac);border-radius:3px;margin:56px 0}
+.vis{flex:1;min-height:0;margin:48px 0}.vis svg{width:100%;height:100%;display:block}
+.vl line{stroke:var(--line)}.vl .on{stroke:var(--ac)}
+.tags{display:flex;gap:20px;flex-wrap:wrap}
+.tag{font-size:var(--XS);padding:8px 28px;border:2px solid var(--ac);color:var(--ac);border-radius:999px}
+.row{display:flex;gap:36px;align-items:flex-start;padding:30px 0;border-bottom:2px solid var(--line)}
+.no{flex:none;width:72px;height:72px;border-radius:50%;background:var(--ac);color:#fff;font-size:var(--XS);font-weight:700;display:grid;place-items:center;margin-top:4px}
+.idx{flex:none;font-size:var(--XS);font-weight:700;color:var(--ac);width:60px;padding-top:8px}
+.cmp{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:48px}
+.col{padding:48px 40px;border:2px solid var(--line);border-radius:24px}.col.r{border:4px solid var(--ac)}
+.col .m{margin-bottom:24px}.col .s{padding:20px 0;border-top:2px solid var(--line)}
+.bar{margin-top:48px;padding:36px 40px;background:var(--ac);color:#fff;border-radius:24px}
+.qa{display:flex;gap:32px;align-items:flex-start}.qa+.qa{margin-top:72px}
+.qa b{flex:none;width:88px;height:88px;border-radius:20px;display:grid;place-items:center;font-size:var(--M);color:#fff;background:var(--ac)}
+.qa.a b{background:none;color:var(--ac);border:4px solid var(--ac)}
+.qm{font-size:var(--XXL);line-height:.8;color:var(--ac);margin-bottom:24px}
+.shot{flex:1;margin:40px 0;border:3px dashed var(--sub);border-radius:24px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,var(--line) 0 2px,transparent 2px 28px)}
+.shot div{background:var(--bg);padding:12px 28px;border-radius:12px}
+@page{size:1080px 1440px;margin:0}
+@media print{body{background:none;padding:0}.page{margin:0;break-after:page}.page:last-child{break-after:auto}.overflow{outline:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// 数据区：只改这里——theme(light/dark)、accent(全篇唯一点缀色)、account、pages(每页 {type, ...版位字段}，"/" 表示换行)
+const DATA={theme:'light',accent:'#3d8bff',account:'@SkyDreamk',pages:[
+{type:'cover',title:'Logo 不用图 / 竖线画出来',sub:'大厂客户墙同款玩法 / 纯代码零图片',tags:['纯代码','可交互','附模板']},
+{type:'opinion',main:'Logo 本身 / 就该是线画的',note:'垫图对位，永远差一截'},
+{type:'numbers',num:'48',basis:'竖线根数，全卡统一',desc:'每根线查一次亮度表 / 亮处粗，暗处细 / Logo 就这样浮现'},
+{type:'steps',title:'四步画出竖线 Logo',steps:[['离屏画图','先把 Logo 画到离屏画布上'],['切格采样','按格子采样每格平均亮度'],['竖线查表','每根线按亮度选四档线宽'],['叠加动效','噪声浮动加悬停散开检测框']]},
+{type:'compare',left:{title:'底下垫图',items:['线和图两层皮','一动就错位','缩放必糊']},right:{title:'Logo 即线',items:['只有一层线','动起来不错位','任意缩放都锐利']},conclusion:'线就是图，所以不错位'},
+{type:'list',title:'可调参数清单',items:['格子大小决定颗粒感','四档线宽拉开明暗','噪声幅度决定浮动感','散开半径跟手掌大小','检测框只落在最亮区','弹簧参数管回弹手感']},
+{type:'qa',q:'不用图片 / 线为什么能成图',a:'因为每根线都在查表 / 它脚下的格子有多亮 / 线就有多粗 / 几百根线排在一起 / 亮度就拼出了形状'},
+{type:'ending',summary:'模板已开源 / 换个 Logo 就能用',cta:'收藏，下次直接套'}
+]};
+const LIM={cover:{title:[7,2],sub:[14,2],tag:[5,1],tags:4},toc:{title:[14,1],item:[16,1],items:7},opinion:{main:[7,3],note:[24,2]},numbers:{num:[4,1],basis:[24,1],desc:[18,3]},compare:{head:[6,1],item:[7,2],items:4,conclusion:[14,1]},steps:{title:[14,1],st:[12,1],sd:[16,1],items:5},list:{title:[14,1],item:[16,1],items:7},quote:{text:[10,4],src:[24,1]},qa:{q:[13,2],a:[16,6]},shot:{title:[14,1],label:[20,1],note:[18,3]},ending:{sum:[10,2],cta:[14,1],acc:[24,1]}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const len=s=>[...s].reduce((n,c)=>n+(c.charCodeAt(0)<256?.5:1),0);
+const lines=s=>Array.isArray(s)?s:String(s??'').split(/\s*\/\s*/);
+const T=(s,cls,lim,tag='div')=>{const ls=lines(s),bad=ls.length>lim[1]||ls.some(l=>len(l)>lim[0]);if(bad)console.warn(`[超限] .${cls}「${ls.join(' / ')}」上限 ${lim[0]}字×${lim[1]}行`);return `<${tag} class="${cls}${bad?' overflow':''}">${ls.map(esc).join('<br>')}</${tag}>`};
+const G=(a,max,name)=>{const bad=a.length>max;if(bad)console.warn(`[超限] ${name} ${a.length} 项，上限 ${max}`);return bad?' overflow':''};
+const art=(n=48,W=888,H=520)=>{const r=H*.46,cx=W/2,cy=H/2,g=W/n;let s='';for(let i=0;i<n;i++){const x=(g*(i+.5)).toFixed(1),dx=Math.abs(x-cx);s+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke-width="3"/>`;if(dx<r){const h=Math.sqrt(r*r-dx*dx),w=[4,7,10,14][Math.min(3,Math.floor(h/r*4))];s+=`<line class="on" x1="${x}" y1="${(cy-h).toFixed(1)}" x2="${x}" y2="${(cy+h).toFixed(1)}" stroke-width="${w}" stroke-linecap="round"/>`}}return `<svg class="vl" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${s}</svg>`};
+const R={
+cover:p=>{const L=LIM.cover,t=p.tags||[];return `<div class="xs sub ttl">${esc(DATA.account)}</div>${T(p.title,'xl',L.title)}${T(p.sub,'m sub mt',L.sub)}<div class="vis">${art()}</div><div class="tags${G(t,L.tags,'cover.tags')}">${t.map(x=>T(x,'tag',L.tag,'span')).join('')}</div>`},
+toc:p=>{const L=LIM.toc,a=p.items||[];return `${T(p.title,'m ttl',L.title)}<div class="${G(a,L.items,'toc.items')}">${a.map((x,i)=>`<div class="row"><span class="idx">${String(i+1).padStart(2,'0')}</span>${T(x,'s',L.item)}</div>`).join('')}</div>`},
+opinion:p=>`${T(p.main,'xl',LIM.opinion.main)}<div class="hr"></div>${T(p.note,'xs sub',LIM.opinion.note)}`,
+numbers:p=>{const L=LIM.numbers;return `${T(p.num,'xxl ac',L.num)}${T(p.basis,'xs sub mt',L.basis)}<div class="hr"></div>${T(p.desc,'s',L.desc)}`},
+compare:p=>{const L=LIM.compare,col=(c,k)=>`<div class="col ${k}${G(c.items,L.items,'compare.items')}">${T(c.title,'m'+(k?' ac':''),L.head)}${c.items.map(x=>T(x,'s',L.item)).join('')}</div>`;return `<div class="cmp">${col(p.left,'')}${col(p.right,'r')}</div>${T(p.conclusion,'m bar',L.conclusion)}`},
+steps:p=>{const L=LIM.steps,a=p.steps||[];return `${T(p.title,'m ttl',L.title)}<div class="${G(a,L.items,'steps')}">${a.map(([t,d],i)=>`<div class="row"><b class="no">${i+1}</b><div>${T(t,'m',L.st)}${T(d,'s sub',L.sd)}</div></div>`).join('')}</div>`},
+list:p=>{const L=LIM.list,a=p.items||[];return `${T(p.title,'m ttl',L.title)}<div class="${G(a,L.items,'list.items')}">${a.map((x,i)=>`<div class="row"><span class="idx">${String(i+1).padStart(2,'0')}</span>${T(x,'s',L.item)}</div>`).join('')}</div>`},
+quote:p=>`<div class="qm">“</div>${T(p.text,'l',LIM.quote.text)}<div class="hr"></div>${T(p.src||'','xs sub',LIM.quote.src)}`,
+qa:p=>`<div class="qa"><b>Q</b>${T(p.q,'m',LIM.qa.q)}</div><div class="qa a"><b>A</b>${T(p.a,'s',LIM.qa.a)}</div>`,
+shot:p=>{const L=LIM.shot;return `${T(p.title,'m',L.title)}<div class="shot">${T(p.label||'截图占位 · 替换为实际画面','xs sub',L.label)}</div>${T(p.note||'','s',L.note)}`},
+ending:p=>{const L=LIM.ending;return `${T(p.summary,'l',L.sum)}<div class="hr"></div>${T(p.cta,'m ac',L.cta)}${T(p.account||DATA.account,'xs sub mt',L.acc)}`}
+};
+const C=new Set(['opinion','numbers','quote','qa','ending']);
+document.documentElement.dataset.theme=DATA.theme==='dark'?'dark':'light';
+document.documentElement.style.setProperty('--ac',DATA.accent);
+const N=DATA.pages.length;
+document.getElementById('app').innerHTML=DATA.pages.map((p,i)=>{const f=R[p.type];if(!f)console.warn(`[未知版式] ${p.type}`);return `<section class="page t-${p.type}${C.has(p.type)?' c':''}">${f?f(p):''}<div class="pn">${i+1} / ${N}</div></section>`}).join('');
+</script>
+</body>
+</html>
