@@ -1,0 +1,516 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Line Logo Cards</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+    background: #f5f5f3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wall { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+  .card {
+    position: relative;
+    width: 340px; height: 440px;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: crosshair;
+    isolation: isolate;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.08);
+  }
+  .card canvas.stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .brand {
+    position: absolute; top: 20px; left: 22px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px; font-weight: 600; letter-spacing: .01em;
+    pointer-events: none;
+  }
+  .brand canvas { width: 18px; height: 18px; display: block; }
+  .foot { position: absolute; left: 22px; right: 22px; bottom: 20px; pointer-events: none; }
+  .slogan { font-size: 14px; line-height: 1.45; max-width: 270px; margin-bottom: 12px; }
+  .cta {
+    pointer-events: auto;
+    font-size: 13px; font-weight: 600;
+    color: inherit; text-decoration: none;
+    opacity: .85;
+  }
+  .cta:hover { opacity: 1; text-decoration: underline; }
+</style>
+</head>
+<body>
+<main class="wall" id="wall"></main>
+
+<script>
+/* =========================================================
+ * CONFIG：每个品牌一个对象 { name, path, viewBox, bg, line, slogan }
+ * path 为 simple-icons 24x24 凭记忆写出，须渲染验货，不像就换真实数据源
+ * ========================================================= */
+const CONFIG = [
+  {
+    name: "Apple",
+    path: "M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701",
+    viewBox: "0 0 24 24",
+    bg: "#ececec",
+    line: "#111111",
+    slogan: "Designed with restraint. Every pixel has to earn its place."
+  },
+  {
+    name: "Google",
+    path: "M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z",
+    viewBox: "0 0 24 24",
+    bg: "#1a5fd8",
+    line: "#b9d4ff",
+    slogan: "Organizing the world's information, one signal at a time."
+  },
+  {
+    name: "Tesla",
+    path: "M12 5.362l2.475-3.026s4.245.09 8.471 2.054c-1.082 1.636-3.231 2.438-3.231 2.438-.146-1.439-1.154-1.79-4.354-1.79L12 24 8.619 5.034c-3.18 0-4.188.354-4.335 1.792 0 0-2.146-.795-3.229-2.43C5.28 2.431 9.525 2.34 9.525 2.34L12 5.362l-.004.002H12v-.002zm0-3.899c3.415-.03 7.326.528 11.328 2.28.535-.968.672-1.395.672-1.395C19.625.612 15.528.015 12 0 8.472.015 4.375.61 0 2.349c0 0 .195.525.672 1.396C4.674 1.989 8.585 1.435 12 1.46v.003z",
+    viewBox: "0 0 24 24",
+    bg: "#0b0b0b",
+    line: "#e82127",
+    slogan: "Accelerating the world's transition to sustainable energy."
+  }
+];
+
+/* =========================================================
+ * PARAMS：可调参数（含义见 SKILL.md 第 5 节）
+ * ========================================================= */
+const PARAMS = {
+  CELL: 6,
+  LINES: 48,
+  WIDTHS: [0.7, 1.5, 2.6, 4.2],
+  THRESH: [0.22, 0.45, 0.70],
+  SEG: 8,
+  SEG_GAP: 1.5,
+  LOGO_SCALE: 0.52,
+  LOGO_CY: 0.46,
+  NOISE_SCALE: 0.018,
+  NOISE_FLOW: 22,
+  NOISE_AMP: 0.26,
+  LUM_GAIN: 0.85,
+  SCATTER_R: 80,
+  SCATTER_PUSH: 18,
+  SPRING_K: 0.09,
+  SPRING_DAMP: 0.82,
+  BOX_MIN: 2,
+  BOX_MAX: 3,
+  BOX_WIN: 0.22,
+  BOX_STRIDE: 2,
+  BOX_KEEP: 0.45,
+  BOX_COLOR: "#3d8bff",
+  HOVER_EASE: 0.12
+};
+
+/* ---------- Value noise（零依赖） ---------- */
+function hash2(x, y) {
+  let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf);
+  const v = yf * yf * (3 - 2 * yf);
+  const a = hash2(xi, yi), b = hash2(xi + 1, yi);
+  const c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+
+function noise2(x, y) {
+  // 两个八度叠加，结果约在 0..1
+  return 0.65 * vnoise(x, y) + 0.35 * vnoise(x * 2.1 + 17.3, y * 2.1 - 9.7);
+}
+
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+/* ---------- 卡片引擎 ---------- */
+class LineCard {
+  constructor(cfg, index) {
+    this.cfg = cfg;
+    this.seed = index * 131.7;
+    this.vb = cfg.viewBox.trim().split(/[\s,]+/).map(Number);
+    this.path2d = new Path2D(cfg.path);
+    this.mouse = { x: 0, y: 0, in: false };
+    this.hover = 0;
+    this.w = 0;
+    this.h = 0;
+    this.dpr = 1;
+    this.buildDOM();
+    this.bindEvents();
+  }
+
+  /* 第 6 步：卡片布局。左上为图标和名字，左下为标语和 CTA */
+  buildDOM() {
+    const { name, bg, line, slogan } = this.cfg;
+
+    const el = document.createElement("article");
+    el.className = "card";
+    el.style.background = bg;
+    el.style.color = line;
+    el.style.textShadow = `0 0 4px ${bg}, 0 0 10px ${bg}`; // 保证文字压在竖线上时仍可读
+    el.setAttribute("aria-label", name);
+
+    this.canvas = document.createElement("canvas");
+    this.canvas.className = "stage";
+    this.ctx = this.canvas.getContext("2d");
+
+    const brand = document.createElement("div");
+    brand.className = "brand";
+    this.icon = document.createElement("canvas");
+    const label = document.createElement("span");
+    label.textContent = name;
+    brand.append(this.icon, label);
+
+    const foot = document.createElement("div");
+    foot.className = "foot";
+    const p = document.createElement("p");
+    p.className = "slogan";
+    p.textContent = slogan;
+    const a = document.createElement("a");
+    a.className = "cta";
+    a.href = "#";
+    a.textContent = "Reveal the source →";
+    foot.append(p, a);
+
+    el.append(this.canvas, brand, foot);
+    this.el = el;
+  }
+
+  /* 左上小图标：同一 path 缩小绘制 */
+  drawIcon() {
+    const S = 18;
+    const dpr = this.dpr;
+    const c = this.icon;
+    c.width = Math.round(S * dpr);
+    c.height = Math.round(S * dpr);
+
+    const g = c.getContext("2d");
+    const [vx, vy, vw, vh] = this.vb;
+    const s = S / Math.max(vw, vh);
+
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.translate((S - vw * s) / 2, (S - vh * s) / 2);
+    g.scale(s, s);
+    g.translate(-vx, -vy);
+    g.fillStyle = this.cfg.line;
+    g.fill(this.path2d);
+  }
+
+  bindEvents() {
+    const update = e => {
+      const r = this.canvas.getBoundingClientRect();
+      this.mouse.x = e.clientX - r.left;
+      this.mouse.y = e.clientY - r.top;
+    };
+    this.el.addEventListener("pointerenter", e => {
+      this.mouse.in = true;
+      update(e);
+    });
+    this.el.addEventListener("pointermove", update);
+    this.el.addEventListener("pointerleave", () => {
+      this.mouse.in = false;
+    });
+  }
+
+  /* 第 5 步：canvas 像素尺寸乘 DPR，尺寸变化时重建一切 */
+  resize() {
+    const r = this.el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) return;
+
+    this.w = r.width;
+    this.h = r.height;
+    this.dpr = window.devicePixelRatio || 1;
+    this.canvas.width = Math.round(this.w * this.dpr);
+    this.canvas.height = Math.round(this.h * this.dpr);
+
+    this.buildTable();
+    this.buildBoxes();
+    this.segRows = Math.ceil(this.h / PARAMS.SEG);
+    this.off = new Float32Array(PARAMS.LINES * this.segRows); // 每段的水平偏移
+    this.vel = new Float32Array(PARAMS.LINES * this.segRows); // 每段的弹簧速度
+    this.drawIcon();
+  }
+
+  /* 第 1 步：离屏绘制 Logo，按格采样亮度，存表后丢弃离屏 canvas */
+  buildTable() {
+    const C = PARAMS.CELL;
+    const cols = (this.cols = Math.ceil(this.w / C));
+    const rows = (this.rows = Math.ceil(this.h / C));
+
+    let off = document.createElement("canvas");
+    off.width = cols * C;
+    off.height = rows * C;
+    const o = off.getContext("2d", { willReadFrequently: true });
+    o.fillStyle = "#000";
+    o.fillRect(0, 0, off.width, off.height);
+
+    // 将 viewBox 等比缩放后居中放置
+    const [vx, vy, vw, vh] = this.vb;
+    const size = Math.min(this.w, this.h) * PARAMS.LOGO_SCALE;
+    const s = size / Math.max(vw, vh);
+    const cx = this.w / 2;
+    const cy = this.h * PARAMS.LOGO_CY;
+    o.setTransform(s, 0, 0, s, cx - (vx + vw / 2) * s, cy - (vy + vh / 2) * s);
+    o.fillStyle = "#fff";
+    o.fill(this.path2d);
+
+    // 每格取 R 通道均值，归一化到 0..1
+    const data = o.getImageData(0, 0, off.width, off.height).data;
+    const W = off.width;
+    const lum = new Float32Array(cols * rows);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        let sum = 0;
+        for (let y = r * C; y < r * C + C; y++) {
+          let i = (y * W + c * C) * 4;
+          for (let x = 0; x < C; x++, i += 4) sum += data[i];
+        }
+        lum[r * cols + c] = sum / (255 * C * C);
+      }
+    }
+    this.lum = lum;
+    off = null; // 存完即弃，此后只查表
+  }
+
+  lumAt(x, y) {
+    const C = PARAMS.CELL;
+    const c = Math.floor(x / C);
+    const r = Math.floor(y / C);
+    if (c < 0 || r < 0 || c >= this.cols || r >= this.rows) return 0;
+    return this.lum[r * this.cols + c];
+  }
+
+  /* 第 4 步（检测框）：积分图滑窗找最亮区域，结果以格为单位，天然吸附网格 */
+  buildBoxes() {
+    const { cols, rows, lum } = this;
+    const P = PARAMS;
+    const win = Math.max(4, Math.round(Math.min(cols, rows) * P.BOX_WIN));
+
+    // 积分图
+    const IW = cols + 1;
+    const I = new Float64Array(IW * (rows + 1));
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        I[(r + 1) * IW + c + 1] =
+          lum[r * cols + c] + I[r * IW + c + 1] + I[(r + 1) * IW + c] - I[r * IW + c];
+      }
+    }
+    const rectSum = (c0, r0, c1, r1) =>
+      I[r1 * IW + c1] - I[r0 * IW + c1] - I[r1 * IW + c0] + I[r0 * IW + c0];
+
+    // 滑窗打分
+    const cands = [];
+    for (let r = 0; r + win <= rows; r += P.BOX_STRIDE) {
+      for (let c = 0; c + win <= cols; c += P.BOX_STRIDE) {
+        cands.push({ c, r, s: rectSum(c, r, c + win, r + win) / (win * win) });
+      }
+    }
+    cands.sort((a, b) => b.s - a.s);
+
+    // 按非重叠规则取 BOX_MIN..BOX_MAX 个
+    const picked = [];
+    for (const k of cands) {
+      if (picked.length >= P.BOX_MAX || k.s < 0.05) break;
+      if (picked.length >= P.BOX_MIN && k.s < picked[0].s * P.BOX_KEEP) break;
+      const hit = picked.some(p =>
+        !(k.c + win <= p.c || p.c + win <= k.c || k.r + win <= p.r || p.r + win <= k.r));
+      if (!hit) picked.push(k);
+    }
+
+    // 收紧到窗内亮格的包围盒，外扩 1 格
+    this.boxes = picked.map(k => {
+      let c0 = Infinity, r0 = Infinity, c1 = -1, r1 = -1;
+      for (let r = k.r; r < k.r + win; r++) {
+        for (let c = k.c; c < k.c + win; c++) {
+          if (lum[r * cols + c] > 0.5) {
+            if (c < c0) c0 = c;
+            if (c > c1) c1 = c;
+            if (r < r0) r0 = r;
+            if (r > r1) r1 = r;
+          }
+        }
+      }
+      if (c1 < 0) {
+        c0 = k.c;
+        r0 = k.r;
+        c1 = k.c + win - 1;
+        r1 = k.r + win - 1;
+      }
+      c0 = Math.max(0, c0 - 1);
+      r0 = Math.max(0, r0 - 1);
+      c1 = Math.min(cols - 1, Math.max(c1 + 1, c0 + 3));
+      r1 = Math.min(rows - 1, Math.max(r1 + 1, r0 + 3));
+      return { c0, r0, c1, r1, s: k.s };
+    });
+
+    // 连线顺序：按水平中心从左到右
+    this.boxes.sort((a, b) => (a.c0 + a.c1) - (b.c0 + b.c1));
+  }
+
+  /* 每帧渲染 */
+  frame(t) {
+    if (!this.w) return;
+    if ((window.devicePixelRatio || 1) !== this.dpr) this.resize();
+
+    const P = PARAMS;
+    const ctx = this.ctx;
+    const { w, h, mouse } = this;
+    this.hover += ((mouse.in ? 1 : 0) - this.hover) * P.HOVER_EASE;
+
+    // 第 5 步：清空重画
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.fillStyle = this.cfg.bg;
+    ctx.fillRect(0, 0, w, h);
+
+    const spacing = w / P.LINES;
+    const flowY = t * P.NOISE_FLOW; // 第 3 步：噪声向下流动
+    const ns = P.NOISE_SCALE;
+    const R = P.SCATTER_R;
+    const R2 = R * R;
+    const segH = P.SEG - P.SEG_GAP;
+    const [T0, T1, T2] = P.THRESH;
+    const WD = P.WIDTHS;
+
+    ctx.beginPath();
+    for (let i = 0; i < P.LINES; i++) {
+      const baseX = (i + 0.5) * spacing;
+      for (let j = 0; j < this.segRows; j++) {
+        const y0 = j * P.SEG;
+        const yc = y0 + P.SEG / 2;
+        const k = i * this.segRows + j;
+
+        // 第 4 步（散开）：鼠标附近给出水平推离目标，弹簧追随；离开后带过冲弹回
+        let target = 0;
+        if (mouse.in) {
+          const dx = baseX - mouse.x;
+          const dy = yc - mouse.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < R2) {
+            const f = 1 - Math.sqrt(d2) / R;
+            target = (dx >= 0 ? 1 : -1) * f * f * P.SCATTER_PUSH;
+          }
+        }
+        this.vel[k] = (this.vel[k] + (target - this.off[k]) * P.SPRING_K) * P.SPRING_DAMP;
+        this.off[k] += this.vel[k];
+        const x = baseX + this.off[k];
+
+        // 第 2、3 步：在线的当前位置查亮度表（Logo 不随线位移而错位），叠加流动噪声
+        const n = noise2(x * ns + this.seed, (yc - flowY) * ns);
+        const v = this.lumAt(x, yc) * P.LUM_GAIN + n * P.NOISE_AMP;
+
+        // 量化为 4 档线宽，分段留缝形成竹节
+        const lw = v < T0 ? WD[0] : v < T1 ? WD[1] : v < T2 ? WD[2] : WD[3];
+        ctx.rect(x - lw / 2, y0, lw, segH);
+      }
+    }
+    ctx.fillStyle = this.cfg.line;
+    ctx.fill();
+
+    if (this.hover > 0.01) this.drawBoxes();
+  }
+
+  /* 第 4 步（检测框）：吸附网格的蓝框、角标坐标、框间细线 */
+  drawBoxes() {
+    const P = PARAMS;
+    const C = P.CELL;
+    const ctx = this.ctx;
+    const a = easeOut(Math.min(1, this.hover));
+
+    const rects = this.boxes.map(b => ({
+      x0: b.c0 * C,
+      y0: b.r0 * C,
+      x1: (b.c1 + 1) * C,
+      y1: (b.r1 + 1) * C,
+      b
+    }));
+
+    ctx.save();
+    ctx.strokeStyle = P.BOX_COLOR;
+    ctx.fillStyle = P.BOX_COLOR;
+    ctx.font = '600 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    ctx.textBaseline = "middle";
+
+    // 框间连线（虚线细线）
+    ctx.globalAlpha = a * 0.8;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    rects.forEach((r, i) => {
+      if (i === 0) return;
+      const p = rects[i - 1];
+      const px = (p.x0 + p.x1) / 2, py = (p.y0 + p.y1) / 2;
+      const cx = (r.x0 + r.x1) / 2, cy = (r.y0 + r.y1) / 2;
+      ctx.moveTo(px, py);
+      ctx.lineTo(cx, cy);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 每个框：细线边框 + 四角 L 形角标 + 格坐标标注（左上附得分，右下只标坐标）
+    const TICK = 7; // 角标线长（px）
+    for (const r of rects) {
+      ctx.globalAlpha = a * 0.9;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0);
+
+      ctx.globalAlpha = a;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      // 左上角标
+      ctx.moveTo(r.x0, r.y0 + TICK); ctx.lineTo(r.x0, r.y0); ctx.lineTo(r.x0 + TICK, r.y0);
+      // 右上角标
+      ctx.moveTo(r.x1 - TICK, r.y0); ctx.lineTo(r.x1, r.y0); ctx.lineTo(r.x1, r.y0 + TICK);
+      // 右下角标
+      ctx.moveTo(r.x1, r.y1 - TICK); ctx.lineTo(r.x1, r.y1); ctx.lineTo(r.x1 - TICK, r.y1);
+      // 左下角标
+      ctx.moveTo(r.x0 + TICK, r.y1); ctx.lineTo(r.x0, r.y1); ctx.lineTo(r.x0, r.y1 - TICK);
+      ctx.stroke();
+
+      // 坐标标注：左上角外侧 "[c0,r0] 得分"，右下角外侧 "[c1,r1]"
+      ctx.globalAlpha = a;
+      ctx.textAlign = "left";
+      ctx.fillText(`[${r.b.c0},${r.b.r0}] ${r.b.s.toFixed(2)}`, r.x0 + 2, Math.max(6, r.y0 - 8));
+      ctx.textAlign = "right";
+      ctx.fillText(`[${r.b.c1},${r.b.r1}]`, r.x1 - 2, Math.min(this.h - 6, r.y1 + 8));
+    }
+
+    ctx.restore();
+  }
+}
+
+/* ---------- 主程序 ---------- */
+const wall = document.getElementById("wall");
+const cards = CONFIG.map((cfg, i) => {
+  const card = new LineCard(cfg, i);
+  wall.appendChild(card.el);
+  return card;
+});
+
+// 卡片尺寸变化时重建亮度表（观察器挂载后会先触发一次，兼作初始化）
+const ro = new ResizeObserver(entries => {
+  for (const e of entries) {
+    const card = cards.find(c => c.el === e.target);
+    if (card) card.resize();
+  }
+});
+cards.forEach(c => ro.observe(c.el));
+
+// 单个 rAF 主循环：时间戳换算成秒后逐卡渲染
+function loop(ms) {
+  const t = ms / 1000;
+  for (const c of cards) c.frame(t);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
