@@ -3,8 +3,8 @@
 把品牌 Logo 渲染成「竖线亮度表卡片」的 Agent skill 与 HTML 模板：不用任何图片，输出单个零依赖 HTML 文件。
 
 <p align="center">
-  <img src="docs/demo-idle.webp" alt="静止状态" width="48%">
-  <img src="docs/demo-hover.webp" alt="悬停状态" width="48%">
+  <img src="docs/demo-idle.png" alt="静止状态" width="48%">
+  <img src="docs/demo-hover.png" alt="悬停状态" width="48%">
 </p>
 <p align="center"><sub>左：静止时线条随噪声缓慢浮动；右：鼠标悬停时线条散开，并出现蓝色检测框。</sub></p>
 
@@ -19,13 +19,13 @@
 
 ## 快速开始
 
-直接双击打开 `assets/template.html` 即可看到效果，内置 Apple / Google / Tesla 三个预设：
+直接双击打开 `assets/template.html` 即可看到效果，内置 华为 / 理想 / 小米 三个预设：
 
 | 预设 | 配色 |
 | --- | --- |
-| Apple | 浅灰底、黑线 |
-| Google | 蓝底、浅蓝线 |
-| Tesla | 黑底、红线 |
+| 华为 | 红底、白线 |
+| 理想 | 黑底、银白线 |
+| 小米 | 米白底、橙线 |
 
 换成其他品牌时，只需修改文件顶部的 `CONFIG` 数组。最小字段示例：
 
@@ -48,7 +48,7 @@ const CONFIG = [
 
 - 「把这个 Logo 做成竖线亮度卡片」
 - 「仿 Cloudflare 客户墙，给这几个品牌生成线条 Logo 卡片」
-- 「用 line-logo-cards 生成一个 Tesla 的卡片」
+- 「用 line-logo-cards 生成一个小米的卡片」
 
 输入清单、六步管线规格、完整参数表和验收清单见 `SKILL.md`。
 
@@ -66,5 +66,5 @@ const CONFIG = [
 ## 来源与说明
 
 - **灵感与致谢**：效果灵感来自 Cloudflare 官网的客户墙。X 作者 Ian（[@ianneo_ai](https://x.com/ianneo_ai)）对其做了拆解与复刻，本仓库在此基础上将其整理为可复用的 skill。
-- **商标声明**：Apple、Google、Tesla 的 Logo 均为各自公司的注册商标。本仓库仅用于学习与演示，不代表与上述公司存在任何关联。
-- **path 验货**：预设中的 SVG path 在使用前须实际渲染检查，确认形状正确、无变形或缺失后再使用。替换为其他品牌时同理。
+- **商标声明**：华为、理想、小米的 Logo 均为各自公司的注册商标。本仓库仅用于学习与演示，不代表与上述公司存在任何关联。
+- **path 来源与验货**：预设 path 均逐字取自真实数据源——华为、小米取自 simple-icons（24×24），理想取自 Wikimedia Commons「Li Auto logo.svg」（49×20）；使用前须实际渲染检查，确认形状正确、无变形或缺失后再用。替换为其他品牌时同理。
